@@ -1,7 +1,6 @@
 package sage
 
 import (
-	"github.com/insanXYZ/sage/throw"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -9,6 +8,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/insanXYZ/sage/throw"
 )
 
 type Sage struct{}
@@ -65,13 +66,9 @@ func valid(file io.Reader, tag []string, size int64) error {
 			ls := strings.ToLower(s)
 
 			if slices.Contains(tagSupport, ls) {
-				if ls == "image" {
-					if splitType[0] != "image" {
-						return throw.InvalidFile
-					}
-				}
-
-				if splitType[1] != ls {
+				if ls == "image" && splitType[0] != "image" {
+					return throw.InvalidFile
+				} else if splitType[1] != ls {
 					return throw.InvalidType(ls)
 				}
 			}
