@@ -24,7 +24,6 @@ var (
 )
 
 func (s *Sage) Validate(file interface{}, tag ...string) error {
-
 	switch t := file.(type) {
 	case *os.File:
 		stat, _ := t.Stat()
