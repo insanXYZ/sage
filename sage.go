@@ -19,7 +19,7 @@ func New() *Sage {
 }
 
 var (
-	tagSupport   = []string{"png", "jpeg", "gif", "jpg", "image"}
+	tagSupport   = []string{"png", "jpeg", "gif", "jpg"}
 	tagWithValue = []string{"minsize", "maxsize"}
 )
 
@@ -28,10 +28,10 @@ func (s *Sage) Validate(file interface{}, tag ...string) error {
 	switch t := file.(type) {
 	case *os.File:
 		stat, _ := t.Stat()
+		t.Seek(0, 0)
 		return valid(t, tag, stat.Size())
 	case *multipart.FileHeader:
 		open, err := t.Open()
-
 		if err != nil {
 			return err
 		}
@@ -54,7 +54,6 @@ func valid(file io.Reader, tag []string, size int64) error {
 	t = http.DetectContentType(read)
 
 	splitType := strings.Split(t, "/")
-
 	if len(tag) == 0 {
 		if splitType[0] != "image" {
 			return throw.InvalidFile
@@ -65,10 +64,13 @@ func valid(file io.Reader, tag []string, size int64) error {
 		for _, s := range tag {
 			ls := strings.ToLower(s)
 
+			err := validTag(ls)
+			if err != nil {
+				return err
+			}
+
 			if slices.Contains(tagSupport, ls) {
-				if ls == "image" && splitType[0] != "image" {
-					return throw.InvalidFile
-				} else if splitType[1] != ls {
+				if splitType[1] != ls {
 					return throw.InvalidType(ls)
 				}
 			}
@@ -98,4 +100,11 @@ func valid(file io.Reader, tag []string, size int64) error {
 	}
 
 	return nil
+}
+
+func validTag(tag string) error {
+	if slices.Contains(tagSupport, tag) || slices.Contains(tagWithValue, tag) {
+		return nil
+	}
+	return throw.InvalidTag(tag)
 }

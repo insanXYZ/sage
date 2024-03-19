@@ -1,9 +1,10 @@
-package typedata
+package main
 
 import (
 	"fmt"
-	"github.com/insanXYZ/sage/sage"
 	"os"
+
+	"github.com/insanXYZ/sage"
 )
 
 func main() {
@@ -14,12 +15,12 @@ func main() {
 	s := sage.New()
 
 	//validate image with Validate
-	err := s.Validate(open, "image", "gif") //not error
+	err := s.Validate(open, "gif") //not error
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	err = s.Validate(open, "image", "png") //error
+	err = s.Validate(open, "png") //error
 	if err != nil {
 		fmt.Println(err.Error())
 	}

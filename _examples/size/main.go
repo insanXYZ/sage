@@ -2,12 +2,13 @@ package size
 
 import (
 	"fmt"
-	"github.com/insanXYZ/sage/sage"
+	"github.com/insanXYZ/sage"
 	"os"
 )
 
 func main() {
 	//open file in your pc with os.open
+	//this gif image have size 167kb
 	open, _ := os.Open("giphy.gif")
 
 	//initialize sage package
