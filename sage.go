@@ -103,6 +103,15 @@ func valid(file io.Reader, tag []string, size int64) error {
 }
 
 func validTag(tag string) error {
+
+	if strings.Contains(tag, "=") {
+		split := strings.Split(tag, "=")
+		if !slices.Contains(tagWithValue, split[0]) {
+			return throw.InvalidTag(tag)
+		}
+		tag = split[0]
+	}
+
 	if slices.Contains(tagSupport, tag) || slices.Contains(tagWithValue, tag) {
 		return nil
 	}
