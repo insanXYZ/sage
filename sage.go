@@ -12,18 +12,12 @@ import (
 	"github.com/insanXYZ/sage/throw"
 )
 
-type Sage struct{}
-
-func New() *Sage {
-	return &Sage{}
-}
-
 var (
-	tagSupport   = []string{"png", "jpeg", "gif", "jpg"}
+	tagSupport   = []string{"png", "jpeg", "gif", "jpg", "bmp"}
 	tagWithValue = []string{"minsize", "maxsize"}
 )
 
-func (s *Sage) Validate(file interface{}, tag ...string) error {
+func Validate(file interface{}, tag ...string) error {
 	switch t := file.(type) {
 	case *os.File:
 		stat, _ := t.Stat()
@@ -42,7 +36,7 @@ func (s *Sage) Validate(file interface{}, tag ...string) error {
 	return throw.InvalidFile
 }
 
-func valid(file io.Reader, tag []string, size int64) error {
+func valid(file io.Reader, tags []string, size int64) error {
 	var t string
 
 	read, err := io.ReadAll(file)
@@ -53,37 +47,39 @@ func valid(file io.Reader, tag []string, size int64) error {
 	t = http.DetectContentType(read)
 
 	splitType := strings.Split(t, "/")
-	if len(tag) == 0 {
+	if len(tags) == 0 {
 		if splitType[0] != "image" {
 			return throw.InvalidFile
 		}
 	}
 
-	if len(tag) > 0 {
-		for _, s := range tag {
-			ls := strings.ToLower(s)
+	if len(tags) > 0 {
+		for _, singleTag := range tags {
+			lowerStringSingleTag := strings.ToLower(singleTag)
 
-			err := validTag(ls)
-			if err != nil {
-				return err
+			errInvalidTag := validTag(lowerStringSingleTag)
+			if errInvalidTag != nil {
+				return errInvalidTag
 			}
 
-			if slices.Contains(tagSupport, ls) {
-				if splitType[1] != ls {
-					return throw.InvalidType(ls)
+			if slices.Contains(tagSupport, lowerStringSingleTag) {
+				if splitType[1] != lowerStringSingleTag {
+					return throw.InvalidType(lowerStringSingleTag)
 				}
 			}
 
-			if strings.Contains(ls, "=") && slices.ContainsFunc(tagWithValue, func(s string) bool {
-				return strings.Contains(ls, s)
-			}) {
-				s := strings.Split(ls, "=")
-				atoi, err := strconv.Atoi(s[1])
-				if err != nil {
-					return err
+			sliceContainWithValue := slices.ContainsFunc(tagWithValue, func(s string) bool {
+				return strings.Contains(lowerStringSingleTag, s)
+			})
+
+			if strings.Contains(lowerStringSingleTag, "=") && sliceContainWithValue {
+				str := strings.Split(lowerStringSingleTag, "=")
+				atoi, errAtoi := strconv.Atoi(str[1])
+				if errAtoi != nil {
+					return errAtoi
 				}
 
-				switch strings.ToLower(s[0]) {
+				switch strings.ToLower(str[0]) {
 				case "minsize":
 					if int(size/1024) < atoi {
 						return throw.InvalidSize(int64(atoi), throw.Minimal)
@@ -101,18 +97,18 @@ func valid(file io.Reader, tag []string, size int64) error {
 	return nil
 }
 
-func validTag(tag string) error {
-
-	if strings.Contains(tag, "=") {
-		split := strings.Split(tag, "=")
+func validTag(tags string) error {
+	if strings.Contains(tags, "=") {
+		split := strings.Split(tags, "=")
 		if !slices.Contains(tagWithValue, split[0]) {
-			return throw.InvalidTag(tag)
+			return throw.InvalidTag(tags)
 		}
-		tag = split[0]
+		tags = split[0]
 	}
 
-	if slices.Contains(tagSupport, tag) || slices.Contains(tagWithValue, tag) {
-		return nil
+	if !slices.Contains(tagSupport, tags) || !slices.Contains(tagWithValue, tags) {
+		return throw.InvalidTag(tags)
 	}
-	return throw.InvalidTag(tag)
+
+	return nil
 }

@@ -9,18 +9,18 @@ import (
 
 func main() {
 	//open file in your pc with os.open
-	open, _ := os.Open("giphy.gif")
-
-	//initialize sage package
-	s := sage.New()
-
-	//validate image with Validate
-	err := s.Validate(open, "gif") //not error
+	open, err := os.Open("giphy.gif")
 	if err != nil {
 		fmt.Println(err.Error())
 	}
 
-	err = s.Validate(open, "png") //error
+	//validate image with Validate
+	err = sage.Validate(open, "gif") //not error
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	err = sage.Validate(open, "png") //error
 	if err != nil {
 		fmt.Println(err.Error())
 	}
