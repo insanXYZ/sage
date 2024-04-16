@@ -80,7 +80,7 @@ f := fiber.New()
 
 fiber.Post("/image-upload", func(ctx *fiber.Ctx) error {
     file, _ := ctx.FormFile("file")
-    err := s.Validate(header)
+    err := sage.Validate(header)
     ...
 })
 ```
