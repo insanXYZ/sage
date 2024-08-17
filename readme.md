@@ -65,8 +65,8 @@ import (
 e := echo.New()
 
 e.POST("/image-upload", func(c echo.Context) error {
-    header, _ := c.FormFile("image")
-    err := sage.Validate(header)
+    file, _ := c.FormFile("image")
+    err := sage.Validate(file)
     ...
 })
 ```
@@ -80,7 +80,7 @@ f := fiber.New()
 
 fiber.Post("/image-upload", func(ctx *fiber.Ctx) error {
     file, _ := ctx.FormFile("file")
-    err := sage.Validate(header)
+    err := sage.Validate(file)
     ...
 })
 ```
