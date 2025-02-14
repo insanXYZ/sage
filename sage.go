@@ -1,10 +1,12 @@
 package sage
 
 import (
+	"errors"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -17,7 +19,7 @@ var (
 	tagWithValue = []string{"minsize", "maxsize"}
 )
 
-func Validate(file interface{}, tag ...string) error {
+func Validate(file any, tag ...string) error {
 	switch t := file.(type) {
 	case *os.File:
 		stat, _ := t.Stat()
@@ -34,6 +36,36 @@ func Validate(file interface{}, tag ...string) error {
 	}
 
 	return throw.InvalidFile
+}
+
+func Struct(st any) error {
+	val := reflect.ValueOf(st)
+
+	if val.IsNil() {
+		return errors.New("nil struct")
+	}
+
+	if val.Kind() == reflect.Pointer {
+		val = val.Elem()
+	}
+
+	tp := val.Type()
+
+	for i := 0; i < tp.NumField(); i++ {
+		f := tp.Field(i)
+		tag := f.Tag.Get("sage")
+		tag = strings.ReplaceAll(tag, " ", "")
+
+		if tag != "" {
+			err := Validate(val.Field(i).Interface(), strings.Split(tag, ",")...)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+
 }
 
 func valid(file io.Reader, tags []string, size int64) error {
